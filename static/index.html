@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <div class="search-container">
+        <h3>Brave Search API</h3>
+        <input type="text" id="searchBox" placeholder="Enter search query">
+        <button id="searchBtn">Search</button>
+        <div id="spinner" class="spinner"></div>
+    </div>
+    <div class="accordion">
+        <div class="accordion-item">
+            <button class="accordion-header" data-target="videosContent">Videos</button>
+            <div id="videosContent" class="accordion-content" style="display: none;">
+                <ul id="videosList"></ul>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <button class="accordion-header" data-target="webContent">Web</button>
+            <div id="webContent" class="accordion-content" style="display: block;">
+                <ul id="webList"></ul>
+            </div>
+        </div>
+    </div>
+    <script>
+        const searchBtn = document.getElementById("searchBtn");
+        const spinner = document.getElementById("spinner");
+
+        searchBtn.addEventListener("click", async () => {
+            const query = document.getElementById("searchBox").value;
+            spinner.style.visibility = "visible";
+            try {
+                const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                const results = await response.json();
+
+                const videosList = document.getElementById("videosList");
+                videosList.innerHTML = results.videos.map(r => `<li>
+                    <div class="web-item">
+                        <img src="${r.img}" alt="${r.title}">
+                        <div style="margin-left: 10px;">
+                                <a href="${r.url}">
+                                    <h5>${r.title}</h4>
+                                </a>
+                                <p>${r.description}</p>
+                            </div>
+                        </div>
+                </li>`).join("");
+
+                const webList = document.getElementById("webList");
+                webList.innerHTML = results.web.map(r => `<li>
+                    <div class="web-item">
+                        <img src="${r.img}" alt="${r.title}">
+                        <div style="margin-left: 10px;">
+                                    <a href="${r.url}">
+                                        <h5>${r.title}</h4>
+                                    </a>
+                                <p>${r.description}</p>
+                            </div>
+                        </div>
+                </li>`).join("");
+            } catch (error) {
+                console.error("Error fetching search results:", error);
+            } finally {
+                spinner.style.visibility = "hidden";
+            }
+        });
+
+        document.querySelectorAll(".accordion-header").forEach(button => {
+            button.addEventListener("click", () => {
+                const target = document.getElementById(button.dataset.target);
+                const isVisible = target.style.display === "block";
+                target.style.display = isVisible ? "none" : "block";
+            });
+        });
+    </script>
+</body>
+</html>
